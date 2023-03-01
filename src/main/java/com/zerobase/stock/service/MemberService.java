@@ -1,5 +1,7 @@
 package com.zerobase.stock.service;
 
+import com.zerobase.stock.exception.impl.AlreadyExistUserException;
+import com.zerobase.stock.exception.impl.NoUserException;
 import com.zerobase.stock.model.Auth;
 import com.zerobase.stock.model.MemberEntity;
 import com.zerobase.stock.persist.MemberRepository;
@@ -28,7 +30,7 @@ public class MemberService implements UserDetailsService {
     public MemberEntity register(Auth.SignUp member){
         boolean exists = this.memberRepository.existsByUsername(member.getUsername());
         if(exists){
-            throw new RuntimeException("이미 사용중인 아이디 입니다.");
+            throw new AlreadyExistUserException();
         }
 
         member.setPassword(this.passwordEncoder.encode(member.getPassword()));
@@ -38,7 +40,7 @@ public class MemberService implements UserDetailsService {
 
     public MemberEntity authenticate(Auth.SignIn member){
         var user = this.memberRepository.findByUsername(member.getUsername())
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 ID 입니다."));
+                .orElseThrow(() -> new NoUserException());
 
         if(!this.passwordEncoder.matches(member.getPassword(), user.getPassword())){
             throw new RuntimeException("비밀번호가 일치하지 않습니다.");
